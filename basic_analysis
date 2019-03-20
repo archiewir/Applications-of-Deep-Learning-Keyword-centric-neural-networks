@@ -1,0 +1,80 @@
+import pandas as pd
+import re
+import numpy as np
+import os
+import string
+from gensim.test.utils import common_texts, get_tmpfile
+from gensim.models import Word2Vec
+from gensim.models import KeyedVectors as kv
+from sklearn.feature_extraction.text import TfidfVectorizer
+import  nltk
+
+os.chdir('C:/Users/Archie Wiranata/PycharmProjects/Modelling')
+
+## Open google vocab (optimal) ##
+file = open('google_vocab_text.txt', 'r', encoding='utf-8-sig')
+vocab_list_processed = file.read().split(sep='","')
+#vocab_list_processed = [re.sub(r'[^\w\s]','', word.lower()) for word in vocab_list]
+
+## Import data
+train_dji = pd.read_csv('db/train_dji.csv', encoding = 'ISO-8859-1')
+train__wilshere = pd.read_csv('db/train_wilshere.csv', encoding='ISO-8859-1')
+
+## Import stopwords
+nltk.download(['stopwords', 'wordnet'])
+stopwords = nltk.corpus.stopwords.words('english')
+
+## Split test and train
+train = train_dji['Date']!= '2019-02-15'
+test = train_dji['Date']== '2019-02-15'
+
+## Manual stopwords and punctuation processing
+x_all = train_dji['topic'] #.str.replace(r'[^\w\s]+', '') # remove puntuation
+x_filtered = []
+x_filtered_clean = []
+word_x_fil = []
+word_x_fil_clean = []
+for sentences in x_all:
+    words = [word for word in sentences.split()]
+    x_filtered.append(' '.join(words))
+    word_x_fil.append(len(words))
+    words = [word for word in sentences.split() if word not in stopwords] # remove stopwords
+    x_filtered_clean.append(' '.join(words))
+    word_x_fil_clean.append(len(words))
+
+x_filtered_df_train = pd.DataFrame(x_filtered)[train]
+x_filtered_df_test = pd.DataFrame(x_filtered)[test]
+
+x_filtered_clean_flat = ' '.join(x_filtered_clean)
+x_filtered_flat = ' '.join(x_filtered)
+
+
+x_filtered_vocab = list(set(x_filtered_flat.split()))
+shared_words = set(x_filtered_vocab) & set(vocab_list_processed)
+print(len(shared_words) / len(x_filtered_vocab))
+
+## Convert to numpy and use tfidf to vecotrize
+x_train_raw = train_dji['topic'].values[train]
+x_test_raw = train_dji['topic'].values[test]
+
+y_train_raw = train_dji['Label'].values[train]
+y_test_raw = train_dji['Label'].values[test]
+
+feature_extraction = TfidfVectorizer(stop_words=stopwords, lowercase=True)
+x_train = feature_extraction.fit_transform(x_train_raw)
+x_test = feature_extraction.transform(x_test_raw)
+data_vocab = list(feature_extraction.vocabulary_.keys())
+shared_words = set(data_vocab) & set(vocab_list_processed)
+print(len(shared_words) / len(data_vocab))
+
+x_filtered_feature = []
+
+## Data analysis
+average_words = len(x_filtered_flat.split())/len(x_all)
+average_characters= len(x_filtered_flat)/len(x_all)
+
+average_words_clean = len(x_filtered_clean_flat.split())/ len(x_all)
+average_characters_clean = len(x_filtered_flat)/len(x_all)
+
+## Remove stop words and punctuation
+## feed into word2vec == word embedding?
