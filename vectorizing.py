@@ -54,112 +54,6 @@ url = ', '.join(business_en['url'])
 
 example = {'keyword':'bitcoin', 'source':'bbc-news, the-verge', 'domain':'bbc.co.uk, techcrunch.com'}
 
-def parameters():
-    ## Keyword ##
-    keyword = input("What keyword would you like to use for your news headlines?")
-
-    ## Time ##
-    date_range = [(datetime.today() - relativedelta(months=+6)), datetime.today()]
-    time = input("Preset or Custom input for datetime of test data? (P/C)")
-
-    # Custom
-    if time == "C":
-        print("Within what datetime would you like to use as test data? (Within the ast 6 months)")
-        while True:
-            ## year ##
-            while True:
-                try:
-                    year = int(input("Year (eg. 2019): "))
-                except ValueError:
-                    print ("That's not a number!")
-                else:
-                    if date_range[0].year <= year <= date_range[1].year:
-                        print(str(year) + "-MM-DD hh:mm")
-                        break
-                    else:
-                        print("Out of range, try again. Range: ")
-                        print(str(date_range[0].year) + " - " + str(date_range[1].year))
-
-            ## mm ##
-            while True:
-                try:
-                    mm = int(input("Month (eg. 1, 12): "))
-                except ValueError:
-                    print (" That is not a number!")
-                else:
-                    if 1 <= mm <= 12:
-                        print(str(year) + "-" + str(mm) + "-DD hh:mm")
-                        break
-                    else:
-                        print ("Invalid month.")
-
-            ## dd ##
-            while True:
-                try:
-                    dd = int(input("date (eg. 1, 31): "))
-                except ValueError:
-                    print("That is not a number!")
-                else:
-                    if 1<= dd <= 31:
-                        print(str(year) + "-" + str(mm) + "-" + str(dd)+ " hh:mm")
-                        break
-                    else:
-                        print("Invalid date, try again.")
-
-            ## hour ##
-            while True:
-                try:
-                    hour = int(input("hour (eg. 0, 23): "))
-                except ValueError:
-                    print("That is not a number!")
-                else:
-                    if 0<= hour <= 23:
-                        print(str(year) + "-" + str(mm) + "-" + str(dd)+ " " + str(hour) + ":mm")
-                        break
-                    else:
-                        print("Invalid hour, try again")
-
-            ## min ##
-            while True:
-                try:
-                    minutes = int(input("minutes (eg. 0, 59): "))
-                except ValueError:
-                    print("That is not a number!")
-                else:
-                    if 0<= minutes <= 59:
-                        print(str(year) + "-" + str(mm) + "-" + str(dd)+ " " + str(hour) + ":" + str(min))
-                        break
-                    else:
-                        print("Invalid minute, try again.")
-
-            try:
-                time = datetime(year=year, month=mm, day=dd, hour=hour, minute=minutes)
-            except ValueError:
-                print("Date is invalid, try again")
-            else:
-                if date_range[0] <= time <= date_range[1]:
-                    print(" Datetime chosen:")
-                    print(str(time))
-                    break
-                else:
-                    print("Date chosen is not within 6 month period from today.")
-                    print(str(time))
-
-    # Preset
-    else:
-        time = int(input("How many hours ago would you like your test data from? eg(1 , 24)"))
-        time = datetime.today() - relativedelta(hours=time)
-        print("Datetime chosen:")
-        print((str(time)))
-
-    ## Index ##
-    indexes = ["DJI", "TSLA", "GOOGL", "AMZN"] ## Add 3 commodity indexes
-    print ("Select one of the following index:")
-    index = input(indexes)
-
-    parameter = [keyword, time, index]
-    return parameter
-
 def convert_json (Json):
     column = ['author', 'source_name', 'source_id', 'url', 'publishedAt', 'content', 'description', 'urlToImage',
               'title']
@@ -211,16 +105,6 @@ def get_articles(keyword, source, domain, date1, date2):
     df_out['publishedAt'] = [z.replace('Z', '') for z in df_out['publishedAt']]
     return df_out
 
-def per_source (keyword, sources):
-    df_out = []
-    for k, v in sources.items():
-        df = get_articles(keyword, k, v)
-        df_out.append(df)
-    df_out = pd.DataFrame(pd.concat(df_out, axis=0))
-    name = keyword + ' ' + str(datetime.now().strftime("%Y-%m-%d %H-%M-%S")) + '.csv'
-    df_out.to_csv(name, index=False)
-    return df_out
-
 def per_page(keyword, source, domain, date1, date2):
 
     articles = newsapi.get_everything(q=keyword,
@@ -270,15 +154,9 @@ def per_date (keyword, source, domain):
     df_out.to_csv('Master_5.csv', index=False)
     return (df_out)
 
-bitcoin = get_articles(example['keyword'], example['source'], example['domain'])
-bitcoin.to_csv('bit.csv', index=False)
 
-time1 = datetime.now()
 business = per_date('', id, url)
 
-#per_source('', id_url)
-time2 = datetime.now()
-time_taken = time2 - time1
 
 date1 = str(datetime(2019,1,15))
 date2 = str(datetime(2019,2,1))
@@ -305,7 +183,7 @@ tesla = get_articles('tesla', id, url, date2, date3)
 tesla.to_csv('tesla2.csv', index=False)
 elon_musk = get_articles('elon_musk', id, url, date2, date3)
 elon_musk.to_csv('elon_musk2.csv', index=False)
-google = get_articles('google', id, url, date2,date3)
+google = get_articles('google', id, url,date2,date3)
 google.to_csv('google2.csv', index=False)
 amazon = get_articles('amazon', id, url, date2, date3)
 amazon.to_csv('amazon2.csv', index=False)

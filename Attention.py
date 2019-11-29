@@ -31,15 +31,15 @@ def init_tokenize(filename): ## Load and tokenize master data
     stopwords = nltk.corpus.stopwords.words('english')
     processed_topic = []
     for sentences in df.topic:
-        sentence = [word for word in sentences if word not in stopwords]
-        processed_topic.append(sentence)
-    df["processed"] = processed_topic
-    t = Tokenizer(filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', lower=True, split=' ', )
-    t.fit_on_texts(df.processed[train])
+        sentence = [word for word in sentences.split() if word not in stopwords]
+        processed_topic.append(' '.join(sentence))
+    df["topic"] = processed_topic
+    t = Tokenizer(filters='!"#$%&()*+,-./:;<=>?@[\\]^_`{|}~\t\n', split=' ' )
+    t.fit_on_texts(processed_topic)
 
-    x_train = t.texts_to_matrix(df["processed"][train], mode='count')
+    x_train = t.texts_to_matrix(df["topic"][train], mode='count')
     y_train = df["Label"][train]
-    x_test = t.texts_to_matrix(df["processed"][test], mode='count')
+    x_test = t.texts_to_matrix(df["topic"][test], mode='count')
     y_test = df["Label"][test]
     return t, x_train, y_train, x_test, y_test
 
@@ -54,5 +54,19 @@ y_test = y_test[0:l]
 
 ## Initialize attention model
 model_attn = Sequential()
+
+## Network structure
+epochs = int(sys.argv[-1])
+nb_timesteps = 1
+nb_classes = 2
+nb_features = x_train.shape[1]
+output_dim = 1
+
+## cross-validated model parameters
+batch_size = 16
+dropout = 0.25
+activation = 'sigmoid'
+nb_hidden = 128
+initialization = 'glorot_normal'
 
 
